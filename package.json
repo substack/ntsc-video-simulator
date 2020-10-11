@@ -1,0 +1,12 @@
+{
+  "main": "dist.js",
+  "dependencies": {
+    "regl": "^2.0.1"
+  },
+  "scripts": {
+    "build": "browserify -t glslify index.js -o dist.js"
+  },
+  "devDependencies": {
+    "glslify": "^7.1.1"
+  }
+}
