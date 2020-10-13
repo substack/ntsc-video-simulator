@@ -4,7 +4,10 @@
     "regl": "^2.0.1"
   },
   "scripts": {
-    "build": "browserify -t glslify index.js -o dist.js"
+    "build": "browserify index.js -o dist.js"
+  },
+  "browserify": {
+    "transform": ["glslify"]
   },
   "devDependencies": {
     "glslify": "^7.1.1"

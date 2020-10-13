@@ -9,11 +9,9 @@ var tv = require('../index.js')({ regl })
 
 var resl = require('resl')({
   manifest: {
-    fbi: {
+    picture: {
       type: 'image',
-      src: location.search.slice(1),
-      //src: 'fbi.png'
-      //src: 'tux-bowl.jpg'
+      src: location.search.slice(1)
     }
   },
   onDone: (assets) => {
@@ -42,18 +40,15 @@ var resl = require('resl')({
       elements: [0,1,2],
       uniforms: {
         time: regl.context('time'),
-        texture: regl.texture(assets.fbi)
+        texture: regl.texture(assets.picture)
       }
     })
-    //regl.frame(frame)
     frame()
     frame()
     window.addEventListener('resize', frame)
     function frame() {
       regl.poll()
-      tv.modulate(() => {
-        draw()
-      })
+      tv.modulate(draw)
       tv.demodulate()
     }
   }

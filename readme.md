@@ -1,4 +1,4 @@
-# ntsc-tv
+# ntsc-video
 
 real-time ntsc television simulator
 
