@@ -10,40 +10,31 @@ function TV(opts) {
     ? opts.width : [ opts.width || 720*m-4, opts.width || 720*m-12 ]
   this.shadowMask = opts.shadowMask !== undefined ? opts.shadowMask : 0.1
   this._mtick = 0
+  this._ftick = 0
   this._dtick = 0
-  this._fbopts = [
-    {
-      color: this._regl.texture({
-        format: 'rgba',
-        type: 'float',
-        width: widths[0],
-        height: 262
-      })
-    },
-    {
-      color: this._regl.texture({
-        format: 'rgba',
-        type: 'float',
-        width: widths[1],
-        height: 263
-      })
-    }
-  ]
-  this._fboInOpts = {
+
+  this._fbOpts = [262,263,262,263,525].map((height,i) => ({
     color: this._regl.texture({
       format: 'rgba',
       type: 'float',
-      width: widths[0],
-      height: 525
+      width: widths[i%2],
+      height
     })
-  }
-  this._fboIn = this._regl.framebuffer()
-  this._fbo = [
-    this._regl.framebuffer(this._fbopts[0]),
-    this._regl.framebuffer(this._fbopts[1])
-  ]
-  this._setm = this._regl({
-    framebuffer: () => this._fboIn
+  }))
+  this._fbo = this._fbOpts.map(this._regl.framebuffer)
+  this._src = 0
+  this._dst = 0
+  this._src0 = 0
+  this._src1 = 0
+
+  this._setfb = this._regl({
+    framebuffer: () => this._fbo[this._dst]
+  })
+  this._setf = this._regl({
+    framebuffer: () => this._fbo[this._dst],
+    uniforms: {
+      signal: () => this._fbo[this._src]
+    }
   })
   this._setd = this._regl({
     uniforms: {
@@ -58,9 +49,9 @@ function TV(opts) {
       #pragma glslify: modulate = require('glsl-ntsc-video/modulate')
       varying vec2 vpos;
       uniform float n_lines;
-      uniform sampler2D inputTexture;
+      uniform sampler2D src;
       void main () {
-        gl_FragColor = vec4(modulate(vpos*0.5+0.5, n_lines, inputTexture),0,0,1);
+        gl_FragColor = vec4(modulate(vpos*0.5+0.5, n_lines, src),0,0,1);
       }
     `,
     vert: `
@@ -77,7 +68,7 @@ function TV(opts) {
     framebuffer: this._regl.prop('framebuffer'),
     uniforms: {
       n_lines: this._regl.prop('n_lines'),
-      inputTexture: () => this._fboIn
+      src: () => this._fbo[4]
     }
   })
   this._ddraw = this._regl({
@@ -131,15 +122,33 @@ function TV(opts) {
   })
 }
 
+TV.prototype._updateFb = function (n) {
+  this._fbo[n](this._fbOpts[n])
+}
+
 TV.prototype.modulate = function (fn) {
-  this._fboIn(this._fboInOpts)
-  this._setm(fn)
-  this._fbo[this._mtick%2](this._fbopts[this._mtick%2])
+  this._src0 = 0
+  this._src1 = 1
+  this._updateFb(4)
+  this._dst = 4
+  this._setfb(fn)
+  this._dst = this._mtick%2
+  this._updateFb(this._dst)
   this._mdraw({
-    framebuffer: this._fbo[this._mtick%2],
-    n_lines: this._mtick%2 ? 263 : 262
+    n_lines: this._mtick%2 ? 263 : 262,
+    framebuffer: this._fbo[this._dst]
   })
   this._mtick++
+}
+
+TV.prototype.filter = function (fn) {
+  this._src = this._dst
+  this._dst += 2
+  this._updateFb(this._dst)
+  this._setf(fn)
+  this._src0 += 2
+  this._src1 += 3
+  this._ftick++
 }
 
 /* // todo:
@@ -166,8 +175,8 @@ TV.prototype.demodulate = function () {
   this._regl.clear({ color: [0,0,0,1], depth: true })
   this._setd(() => {
     this._ddraw({
-      signal0: this._fbo[0],
-      signal1: this._fbo[1],
+      signal0: this._fbo[this._src0],
+      signal1: this._fbo[this._src1],
     })
   })
 }
