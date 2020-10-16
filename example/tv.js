@@ -1,10 +1,4 @@
-var regl = require('regl')({
-  extensions: [
-    'oes_texture_float',
-    'oes_texture_float_linear',
-    'webgl_color_buffer_float'
-  ]
-})
+var regl = require('regl')()
 var tv = require('../index.js')({ regl })
 var draw = regl({
   frag: `
@@ -32,14 +26,10 @@ var draw = regl({
   `,
   attributes: { position: [-4,-4,-4,+4,+4,+0] },
   elements: [0,1,2],
-  uniforms: {
-    time: regl.context('time')
-  }
+  uniforms: { time: regl.context('time') }
 })
 
 regl.frame(() => {
-  tv.modulate(() => {
-    draw()
-  })
+  tv.modulate(() => draw())
   tv.demodulate()
 })

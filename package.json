@@ -7,9 +7,12 @@
     "build": "browserify index.js -o dist.js"
   },
   "browserify": {
-    "transform": ["glslify"]
+    "transform": [
+      "glslify"
+    ]
   },
   "devDependencies": {
+    "glsl-noise": "0.0.0",
     "glslify": "^7.1.1"
   }
 }

@@ -5,23 +5,20 @@ module.exports = TV
 function TV(opts) {
   if (!(this instanceof TV)) return new TV(opts)
   this._regl = opts.regl
-  var m = 2
   var widths = Array.isArray(opts.width)
-    ? opts.width : [ opts.width || 720*m-4, opts.width || 720*m-12 ]
+    ? opts.width : [ opts.width || 1024, opts.width || 1024]
   this.shadowMask = opts.shadowMask !== undefined ? opts.shadowMask : 0.1
   this._mtick = 0
-  this._ftick = 0
   this._dtick = 0
 
   this._fbOpts = [262,263,262,263,525].map((height,i) => ({
     color: this._regl.texture({
-      format: 'rgba',
-      type: 'float',
       width: widths[i%2],
-      height
+      height,
     })
   }))
   this._fbo = this._fbOpts.map(this._regl.framebuffer)
+  this._nlines = 0
   this._src = 0
   this._dst = 0
   this._src0 = 0
@@ -33,7 +30,8 @@ function TV(opts) {
   this._setf = this._regl({
     framebuffer: () => this._fbo[this._dst],
     uniforms: {
-      signal: () => this._fbo[this._src]
+      signal: () => this._fbo[this._src],
+      n_lines: () => this._nlines,
     }
   })
   this._setd = this._regl({
@@ -83,7 +81,7 @@ function TV(opts) {
       const float P_TIME = 5.26e-5;
       void main () {
         vec2 v = vpos*0.5+0.5;
-        vec2 r = vec2(720, 525);
+        vec2 r = vec2(720, 485);
         vec3 rgb0 = demodulate(v, vec3(262,r), signal0);
         vec3 rgb1 = demodulate(v, vec3(263,r), signal1);
         vec3 rgb = mix(rgb0,rgb1,sin(v.y*PI*2.0*242.5)*0.5+0.5);
@@ -94,6 +92,7 @@ function TV(opts) {
           step(mod(v.x*r.x*3.0+0.0,3.0),1.0)
         ) * (1.0-step(mod(((v.y+sy)*r.y)*3.0,3.0),0.5));
         vec3 c = mix(rgb,rgb*mask,shadowMask);
+        //vec3 c = vec3(texture2D(signal0,v).x);
         gl_FragColor = vec4(c,1);
       }
     `,
@@ -134,8 +133,9 @@ TV.prototype.modulate = function (fn) {
   this._setfb(fn)
   this._dst = this._mtick%2
   this._updateFb(this._dst)
+  this._nlines = this._mtick%2 ? 263 : 262
   this._mdraw({
-    n_lines: this._mtick%2 ? 263 : 262,
+    n_lines: this._nlines,
     framebuffer: this._fbo[this._dst]
   })
   this._mtick++
@@ -147,8 +147,7 @@ TV.prototype.filter = function (fn) {
   this._updateFb(this._dst)
   this._setf(fn)
   this._src0 += 2
-  this._src1 += 3
-  this._ftick++
+  this._src1 += 2
 }
 
 /* // todo:
