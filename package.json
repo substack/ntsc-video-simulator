@@ -10,5 +10,6 @@
     "glsl-noise": "0.0.0",
     "glslify": "^7.1.1",
     "regl": "^2.0.1"
-  }
+  },
+  "license": "bsd"
 }
