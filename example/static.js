@@ -1,6 +1,6 @@
 var glsl = require('glslify')
 var regl = require('regl')()
-var tv = require('../index.js')({ regl })
+var tv = require('../')({ regl })
 var draw = {}
 draw.bg = regl({
   frag: `

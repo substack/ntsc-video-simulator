@@ -1,5 +1,5 @@
 var regl = require('regl')()
-var tv = require('../index.js')({ regl })
+var tv = require('../')({ regl })
 var draw = regl({
   frag: `
     precision highp float;

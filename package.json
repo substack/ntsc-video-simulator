@@ -1,18 +1,14 @@
 {
+  "name": "ntsc-video-simulator",
+  "version": "1.0.0",
+  "description": "real-time ntsc television simulator",
   "main": "dist.js",
-  "dependencies": {
-    "regl": "^2.0.1"
-  },
   "scripts": {
-    "build": "browserify index.js -o dist.js"
-  },
-  "browserify": {
-    "transform": [
-      "glslify"
-    ]
+    "build": "browserify -s TV -r ./index.js -t glslify -o dist.js"
   },
   "devDependencies": {
     "glsl-noise": "0.0.0",
-    "glslify": "^7.1.1"
+    "glslify": "^7.1.1",
+    "regl": "^2.0.1"
   }
 }

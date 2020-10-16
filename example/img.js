@@ -5,7 +5,7 @@ var regl = require('regl')({
     'webgl_color_buffer_float'
   ]
 })
-var tv = require('../index.js')({ regl })
+var tv = require('../')({ regl })
 
 var resl = require('resl')({
   manifest: {
